@@ -1,53 +1,64 @@
+import { MongoClient, ObjectId } from 'mongodb';
+import Head from 'next/head';
 import MeetupDetail from '../../components/meetups/MeetupDetail';
 
 const MeetupDetails = (props) => {
   return (
-    <MeetupDetail
-      image={props.meetupData.image}
-      title={props.meetupData.title}
-      address={props.meetupData.address}
-      description={props.meetupData.description}
-    />
+    <>
+      <Head>
+        <title>{props.meetupData.title}</title>
+        <meta name='description' content={props.meetupData.description}></meta>
+      </Head>
+      <MeetupDetail
+        image={props.meetupData.image}
+        title={props.meetupData.title}
+        address={props.meetupData.address}
+        description={props.meetupData.description}
+      />
+    </>
   );
 };
 
 export default MeetupDetails;
 
 export const getStaticPaths = async () => {
+  const client = await MongoClient.connect(
+    'mongodb+srv://brunosecchiari95:vwjpnz95@cluster0.vfurf5b.mongodb.net/meetups?retryWrites=true&w=majority'
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection('meetups');
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+  client.close();
+
   return {
     fallback: false,
-    paths: [
-      {
-        params: {
-          id: 'm1',
-        },
-      },
-      {
-        params: {
-          id: 'm2',
-        },
-      },
-      {
-        params: {
-          id: 'm3',
-        },
-      },
-    ],
+    paths: meetups.map((meetup) => ({
+      params: { id: meetup._id.toString() },
+    })),
   };
 };
 
 export const getStaticProps = async (context) => {
   const id = context.params.id;
 
+  const client = await MongoClient.connect(
+    'mongodb+srv://brunosecchiari95:vwjpnz95@cluster0.vfurf5b.mongodb.net/meetups?retryWrites=true&w=majority'
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection('meetups');
+  const selectedMeetup = await meetupsCollection.findOne({
+    _id: new ObjectId(id),
+  });
+  client.close();
+
   return {
     props: {
       meetupData: {
-        id,
-        image:
-          'https://a-static.besthdwallpaper.com/new-york-bridge-wallpaper-1280x768-79388_13.jpg',
-        title: 'Meetup 1',
-        address: 'Calle Falsa 123, Springfield',
-        description: 'This is the first meetup of the list.',
+        id: selectedMeetup._id.toString(),
+        image: selectedMeetup.image,
+        title: selectedMeetup.title,
+        address: selectedMeetup.address,
+        description: selectedMeetup.description,
       },
     },
   };

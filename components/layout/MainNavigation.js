@@ -4,7 +4,7 @@ import styles from './MainNavigation.module.css';
 const MainNavigation = () => {
   return (
     <header className={styles.header}>
-      <div className={styles.logo}>Next.js</div>
+      <div className={styles.logo}>React Meetups</div>
       <nav>
         <ul>
           <li>

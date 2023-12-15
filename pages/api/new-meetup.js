@@ -9,8 +9,7 @@ const handler = async (req, res) => {
     );
     const db = client.db();
     const meetupsCollection = db.collection('meetups');
-    const result = await meetupsCollection.insertOne(data);
-    console.log(result);
+    await meetupsCollection.insertOne(data);
 
     client.close();
     res.status(201).json({ message: 'Successfull' });

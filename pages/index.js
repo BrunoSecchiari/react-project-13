@@ -1,42 +1,41 @@
+import Head from 'next/head';
+import { MongoClient } from 'mongodb';
 import MeetupList from '../components/meetups/MeetupList';
 
-const MEETUPS = [
-  {
-    id: 'm1',
-    title: 'Meetup 1',
-    image:
-      'https://a-static.besthdwallpaper.com/new-york-bridge-wallpaper-1280x768-79388_13.jpg',
-    address: 'Calle Falsa 123, Springfield',
-    description: 'This is the first meetup of the list.',
-  },
-  {
-    id: 'm2',
-    title: 'Meetup 2',
-    image:
-      'https://a-static.besthdwallpaper.com/new-york-bridge-wallpaper-1280x768-79388_13.jpg',
-    address: 'Calle Falsa 123, Springfield',
-    description: 'This is the second meetup of the list.',
-  },
-  {
-    id: 'm3',
-    title: 'Meetup 3',
-    image:
-      'https://a-static.besthdwallpaper.com/new-york-bridge-wallpaper-1280x768-79388_13.jpg',
-    address: 'Calle Falsa 123, Springfield',
-    description: 'This is the third meetup of the list.',
-  },
-];
-
 const HomePage = (props) => {
-  return <MeetupList meetups={props.meetups} />;
+  return (
+    <>
+      <Head>
+        <title>React Meetups</title>
+        <meta
+          name='description'
+          content='Browse through our diverse and outstanding meetups!'
+        ></meta>
+      </Head>
+      <MeetupList meetups={props.meetups} />
+    </>
+  );
 };
 
 export default HomePage;
 
 export const getStaticProps = async () => {
+  const client = await MongoClient.connect(
+    'mongodb+srv://brunosecchiari95:vwjpnz95@cluster0.vfurf5b.mongodb.net/meetups?retryWrites=true&w=majority'
+  );
+  const db = client.db();
+  const meetupsCollection = db.collection('meetups');
+  const meetups = await meetupsCollection.find().toArray();
+  client.close();
+
   return {
     props: {
-      meetups: MEETUPS,
+      meetups: meetups.map((meetup) => ({
+        image: meetup.image,
+        title: meetup.title,
+        address: meetup.address,
+        id: meetup._id.toString(),
+      })),
       revalidate: 60,
     },
   };
